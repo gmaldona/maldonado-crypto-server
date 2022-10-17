@@ -1,0 +1,4 @@
+.DS_Store
+server_conf.yml
+.idea/
+.env
