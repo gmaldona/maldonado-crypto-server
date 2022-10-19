@@ -2,4 +2,5 @@
 server_conf.yml
 .idea/
 .env
-*.pem
+docker-save/
+hostname.txt
