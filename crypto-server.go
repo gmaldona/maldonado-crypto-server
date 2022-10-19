@@ -7,8 +7,6 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/jamespearly/loggly"
 	"github.com/joho/godotenv"
-	"gopkg.in/yaml.v3"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -39,17 +37,9 @@ func main() {
 		log.Fatal("Error loading .env file")
 	}
 
-	yamlFile, err := ioutil.ReadFile("server_conf.yml")
-	if err != nil {
-		fmt.Println("Could not read server_conf.yml")
-		return
-	}
-
-	var serverConf ServerConf
-	err = yaml.Unmarshal(yamlFile, &serverConf)
-	if err != nil {
-		fmt.Println("Could not parse server_conf.yml")
-		return
+	serverConf := &ServerConf{
+		Host: os.Getenv("HOST"),
+		Port: os.Getenv("PORT"),
 	}
 
 	var wait time.Duration
@@ -60,7 +50,7 @@ func main() {
 	r.HandleFunc("/maldonado/status", handleGetStatus).Methods("GET")
 
 	srv := &http.Server{
-		Addr: serverConf.Host + ":" + serverConf.Port,
+		Addr: ":" + serverConf.Port,
 
 		WriteTimeout: time.Second * 15,
 		ReadTimeout:  time.Second * 15,
@@ -69,7 +59,7 @@ func main() {
 	}
 
 	go func() {
-		fmt.Println("Starting server on host " + serverConf.Host + " on port " + serverConf.Port)
+		fmt.Println("Starting server...")
 		if err := srv.ListenAndServe(); err != nil {
 			log.Println(err)
 		}
