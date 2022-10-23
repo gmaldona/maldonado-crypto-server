@@ -4,5 +4,5 @@ server_conf.yml
 .env
 docker-save/
 hostname.txt
-run_container_aws.sh
 deploy_aws.sh
+run_container_aws.sh
