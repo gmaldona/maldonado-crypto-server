@@ -1,0 +1,12 @@
+#! /bin/bash
+
+# shellcheck disable=SC2034
+ContainerPort=               # fill in for port mapping on container
+# shellcheck disable=SC2034
+ExternalPort=                 # fill in for port mapping on container
+DockerContainerName=          # docker container name
+DockerImageName=              # docker image name
+
+docker container stop "$DockerContainerName"
+docker container rm "$DockerContainerName"
+docker run -dit -p "$ExternalPort":"$ContainerPort" --platform linux/amd64 --env PORT="$ContainerPort" --name "$DockerContainerName" "$DockerImageName"
