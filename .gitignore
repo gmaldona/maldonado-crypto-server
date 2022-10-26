@@ -6,3 +6,4 @@ docker-save/
 hostname.txt
 deploy_aws.sh
 run_container_aws.sh
+run_container_local.sh
