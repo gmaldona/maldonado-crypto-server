@@ -14,6 +14,12 @@ import (
 	"time"
 )
 
+func badRequestToLoggly(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusMethodNotAllowed)
+	client := loggly.New("crypto-server")
+	client.EchoSend("error", "Method: "+r.Method+". Not allowed from: "+r.RemoteAddr+"Path: "+r.RequestURI)
+}
+
 func sendToLoggly(r *http.Request) {
 	client := loggly.New("crypto-server")
 	client.EchoSend("info", "Source ip: "+r.RemoteAddr+". Path: "+r.RequestURI+". Method: "+r.Method)
@@ -48,6 +54,7 @@ func main() {
 
 	r := mux.NewRouter()
 	r.HandleFunc("/maldonado/status", handleGetStatus).Methods("GET")
+	r.HandleFunc("/maldonado/status", badRequestToLoggly).Methods("POST", "PUT", "DELETE", "PATCH")
 
 	srv := &http.Server{
 		Addr: ":" + serverConf.Port,
