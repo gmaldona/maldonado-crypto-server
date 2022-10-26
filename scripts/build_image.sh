@@ -6,4 +6,4 @@ then
   exit 1
 fi
 
-docker buildx build --platform linux/amd64 -t crypto-server-app .
+docker buildx build --platform linux/amd64 -t maldonado-crypto-server-app .
