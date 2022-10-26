@@ -11,4 +11,4 @@ then
     mkdir docker-save
 fi
 
- docker save maldonado-crypto-server-app > ./docker-save/maldonado-crypto-server.tar
+ docker save maldonado-crypto-server-image > ./docker-save/maldonado-crypto-server.tar
