@@ -1,2 +1,6 @@
 docker-save/
 scripts/
+.env.example
+.gitignore
+Dockerfile
+README.md
