@@ -8,7 +8,7 @@ fi
 
 
 
-while getopts 'lp:' OPTION; do
+while getopts 'lph' OPTION; do
   case "$OPTION" in
     l)
       printf "Building image for local machine.\n"
@@ -21,8 +21,8 @@ while getopts 'lp:' OPTION; do
       docker buildx build --platform linux/amd64 -t maldonado-crypto-server-image .
       ;;
     h)
-      printf "-l\t Build a docker image for local machine."
-      printf "-p\t Build a docker image for AWS linux machine."
+      printf "\055l\t Build a docker image for local machine.\n"
+      printf "\055p\t Build a docker image for AWS linux machine.\n"
       ;;
     ?)
       printf "Building image for AWS linux machine.\n"
