@@ -8,6 +8,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
+	"github.com/aws/aws-sdk-go/service/dynamodb/expression"
 	"github.com/gorilla/mux"
 	"github.com/jamespearly/loggly"
 	"github.com/joho/godotenv"
@@ -32,7 +34,6 @@ type Currency_t struct {
 	PriceUsd          string `json:"priceUsd"`
 	ChangePercent24Hr string `json:"changePercent24Hr"`
 	Vwap24Hr          string `json:"vwap24Hr"`
-	Explorer          string `json:"explorer"`
 }
 
 type Status struct {
@@ -61,6 +62,100 @@ func throwLogError(msg string) {
 func sendToLoggly(r *http.Request) {
 	client := loggly.New("crypto-server")
 	client.EchoSend("info", "Source ip: "+r.RemoteAddr+". Path: "+r.RequestURI+". Method: "+r.Method)
+}
+
+func handleGetAll(w http.ResponseWriter, r *http.Request) {
+	db := getDBSession()
+
+	var resp []Currency_t
+
+	err := db.ScanPages(&dynamodb.ScanInput{
+		TableName: aws.String(DB_TABLE_NAME),
+	}, func(page *dynamodb.ScanOutput, last bool) bool {
+		recs := []Currency_t{}
+
+		err := dynamodbattribute.UnmarshalListOfMaps(page.Items, &recs)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(err.Error()))
+			throwLogError(err.Error())
+			return false
+		}
+
+		resp = append(resp, recs...)
+
+		return true
+	})
+
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		throwLogError(err.Error())
+		return
+	}
+
+	itemJson, err := json.Marshal(resp)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		throwLogError(err.Error())
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(itemJson)
+	sendToLoggly(r)
+}
+
+func handleSearch(w http.ResponseWriter, r *http.Request) {
+	db := getDBSession()
+
+	filt := expression.Name("Id").Equal(expression.Value(mux.Vars(r)["name"]))
+	expr, err := expression.NewBuilder().WithFilter(filt).Build()
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		throwLogError(err.Error())
+	}
+
+	params := &dynamodb.ScanInput{
+		ExpressionAttributeNames:  expr.Names(),
+		ExpressionAttributeValues: expr.Values(),
+		FilterExpression:          expr.Filter(),
+		ProjectionExpression:      expr.Projection(),
+		TableName:                 aws.String(DB_TABLE_NAME),
+	}
+
+	result, err := db.Scan(params)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		throwLogError(err.Error())
+	}
+
+	currency := Currency_t{}
+
+	for _, item := range result.Items {
+
+		err = dynamodbattribute.UnmarshalMap(item, &currency)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(err.Error()))
+			throwLogError(err.Error())
+		}
+
+	}
+
+	resultJson, err := json.Marshal(currency)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		throwLogError(err.Error())
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(resultJson)
+
+	sendToLoggly(r)
 }
 
 func handleGetStatus(w http.ResponseWriter, r *http.Request) {
@@ -114,6 +209,12 @@ func main() {
 	r.HandleFunc("/maldonado/status", handleGetStatus).Methods("GET")
 	r.HandleFunc("/maldonado/status", badRequestToLoggly).Methods("POST", "PUT", "DELETE", "PATCH")
 
+	r.HandleFunc("/maldonado/all", handleGetAll).Methods("GET")
+	r.HandleFunc("/maldonado/all", badRequestToLoggly).Methods("POST", "PUT", "DELETE", "PATCH")
+
+	r.HandleFunc("/maldonado/search/{name:[-a-zA-Z]+}", handleSearch).Methods("GET")
+	r.HandleFunc("/maldonado/search/", badRequestToLoggly).Methods("POST", "PUT", "DELETE", "PATCH")
+
 	srv := &http.Server{
 		Addr: ":" + os.Getenv("PORT"),
 
@@ -124,6 +225,7 @@ func main() {
 	}
 
 	go func() {
+		fmt.Println(srv.Addr)
 		fmt.Println("Starting server...")
 		if err := srv.ListenAndServe(); err != nil {
 			log.Println(err)
