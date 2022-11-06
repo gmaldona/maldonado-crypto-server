@@ -206,14 +206,14 @@ func main() {
 	flag.Parse()
 
 	r := mux.NewRouter()
-	r.HandleFunc("/maldonado/status", handleGetStatus).Methods("GET")
-	r.HandleFunc("/maldonado/status", badRequestToLoggly).Methods("POST", "PUT", "DELETE", "PATCH")
+	r.HandleFunc("/gmaldona/status", handleGetStatus).Methods("GET")
+	r.HandleFunc("/gmaldona/status", badRequestToLoggly).Methods("POST", "PUT", "DELETE", "PATCH")
 
-	r.HandleFunc("/maldonado/all", handleGetAll).Methods("GET")
-	r.HandleFunc("/maldonado/all", badRequestToLoggly).Methods("POST", "PUT", "DELETE", "PATCH")
+	r.HandleFunc("/gmaldona/all", handleGetAll).Methods("GET")
+	r.HandleFunc("/gmaldona/all", badRequestToLoggly).Methods("POST", "PUT", "DELETE", "PATCH")
 
-	r.HandleFunc("/maldonado/search/{name:[-a-zA-Z]+}", handleSearch).Methods("GET")
-	r.HandleFunc("/maldonado/search/", badRequestToLoggly).Methods("POST", "PUT", "DELETE", "PATCH")
+	r.HandleFunc("/gmaldona/search/{name:[-a-zA-Z]+}", handleSearch).Methods("GET")
+	r.HandleFunc("/gmaldona/search/", badRequestToLoggly).Methods("POST", "PUT", "DELETE", "PATCH")
 
 	srv := &http.Server{
 		Addr: ":" + os.Getenv("PORT"),
