@@ -195,10 +195,11 @@ func handleGetStatus(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
+	if _, err := os.Stat(".env"); err == nil {
+		err := godotenv.Load()
+		if err != nil {
+			log.Fatal("Error loading .env file")
+		}
 	}
 
 	var wait time.Duration
@@ -216,7 +217,7 @@ func main() {
 	r.HandleFunc("/gmaldona/search/", badRequestToLoggly).Methods("POST", "PUT", "DELETE", "PATCH")
 
 	srv := &http.Server{
-		Addr: ":" + os.Getenv("PORT"),
+		Addr: ":8080",
 
 		WriteTimeout: time.Second * 15,
 		ReadTimeout:  time.Second * 15,
