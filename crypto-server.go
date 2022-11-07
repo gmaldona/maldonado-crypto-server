@@ -12,7 +12,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodb/expression"
 	"github.com/gorilla/mux"
 	"github.com/jamespearly/loggly"
-	"github.com/joho/godotenv"
 	"log"
 	"net/http"
 	"os"
@@ -195,12 +194,6 @@ func handleGetStatus(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	if _, err := os.Stat(".env"); err == nil {
-		err := godotenv.Load()
-		if err != nil {
-			log.Fatal("Error loading .env file")
-		}
-	}
 
 	var wait time.Duration
 	flag.DurationVar(&wait, "graceful-timeout", time.Second*15, "the duration for which the server gracefully wait for existing connections to finish - e.g. 15s or 1m")
