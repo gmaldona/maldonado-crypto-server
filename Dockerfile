@@ -17,7 +17,6 @@ RUN apk update && \
 WORKDIR /app/
 
 COPY --from=build /home/golang/app ./
-COPY --from=build /home/golang/.env ./
 
 RUN env && pwd && find .
 
