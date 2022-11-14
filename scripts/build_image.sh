@@ -6,7 +6,7 @@ then
   exit 1
 fi
 
-IMAGE_NAME="" # image name
+IMAGE_NAME="gmaldona-server" # image name
 
 while getopts 'lph' OPTION; do
   case "$OPTION" in
